@@ -14,6 +14,7 @@ const modalTitle = document.getElementById('modal-recipe-title');
 const modalImage = document.getElementById('modal-recipe-image');
 const modalDetails = document.getElementById('modal-recipe-details');
 const closeModal = document.querySelector('.close');
+const dietaryFilters = document.querySelectorAll('#dietary-filters input[type="checkbox"]');
 
 // Event listeners
 searchForm.addEventListener('submit', handleSearch);
@@ -23,6 +24,7 @@ window.addEventListener('click', (e) => {
         hideModal();
     }
 });
+dietaryFilters.forEach(filter => filter.addEventListener('change', handleSearch));
 
 // Functions
 function handleSearch(e) {
@@ -30,13 +32,40 @@ function handleSearch(e) {
     const query = searchInput.value.trim();
     if (query) {
         showLoadingSpinner();
-        searchRecipes(query);
+        const filters = getSelectedFilters();
+        searchRecipes(query, filters);
     }
 }
 
-async function searchRecipes(query) {
+function getSelectedFilters() {
+    const filters = {
+        diet: [],
+        health: []
+    };
+    dietaryFilters.forEach(filter => {
+        if (filter.checked) {
+            if (filter.name === 'diet') {
+                filters.diet.push(filter.value);
+            } else if (filter.name === 'health') {
+                filters.health.push(filter.value);
+            }
+        }
+    });
+    return filters;
+}
+
+async function searchRecipes(query, filters) {
     try {
-        const response = await fetch(`${API_URL}?q=${query}&app_id=${API_ID}&app_key=${API_KEY}&from=0&to=20`);
+        let url = `${API_URL}?q=${query}&app_id=${API_ID}&app_key=${API_KEY}&from=0&to=20`;
+
+        if (filters.diet.length > 0) {
+            url += `&diet=${filters.diet.join('&diet=')}`;
+        }
+        if (filters.health.length > 0) {
+            url += `&health=${filters.health.join('&health=')}`;
+        }
+
+        const response = await fetch(url);
         const data = await response.json();
         hideLoadingSpinner();
         displaySearchResults(data.hits);
@@ -50,7 +79,7 @@ async function searchRecipes(query) {
 function displaySearchResults(recipes) {
     searchResults.innerHTML = '';
     if (recipes.length === 0) {
-        searchResults.innerHTML = '<p>No recipes found. Please try a different search term.</p>';
+        searchResults.innerHTML = '<p>No recipes found. Please try a different search term or adjust your filters.</p>';
         return;
     }
     recipes.forEach(recipe => {

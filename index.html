@@ -33,6 +33,21 @@
                 <input type="text" id="search-input" placeholder="Enter ingredients or dish name">
                 <button type="submit">Search</button>
             </form>
+            <div id="dietary-filters">
+                <h3>Dietary Filters</h3>
+                <div class="filter-options">
+                    <label><input type="checkbox" name="diet" value="balanced"> Balanced</label>
+                    <label><input type="checkbox" name="diet" value="high-protein"> High-Protein</label>
+                    <label><input type="checkbox" name="diet" value="low-carb"> Low-Carb</label>
+                    <label><input type="checkbox" name="diet" value="low-fat"> Low-Fat</label>
+                </div>
+                <div class="filter-options">
+                    <label><input type="checkbox" name="health" value="vegan"> Vegan</label>
+                    <label><input type="checkbox" name="health" value="vegetarian"> Vegetarian</label>
+                    <label><input type="checkbox" name="health" value="gluten-free"> Gluten-Free</label>
+                    <label><input type="checkbox" name="health" value="dairy-free"> Dairy-Free</label>
+                </div>
+            </div>
             <div id="loading-spinner" class="hidden">
                 <i class="fas fa-spinner fa-spin"></i> Loading...
             </div>
