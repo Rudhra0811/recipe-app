@@ -9,9 +9,20 @@ const searchInput = document.getElementById('search-input');
 const searchResults = document.getElementById('search-results');
 const favoritesList = document.getElementById('favorites-list');
 const loadingSpinner = document.getElementById('loading-spinner');
+const modal = document.getElementById('recipe-modal');
+const modalTitle = document.getElementById('modal-recipe-title');
+const modalImage = document.getElementById('modal-recipe-image');
+const modalDetails = document.getElementById('modal-recipe-details');
+const closeModal = document.querySelector('.close');
 
 // Event listeners
 searchForm.addEventListener('submit', handleSearch);
+closeModal.addEventListener('click', hideModal);
+window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        hideModal();
+    }
+});
 
 // Functions
 function handleSearch(e) {
@@ -43,12 +54,12 @@ function displaySearchResults(recipes) {
         return;
     }
     recipes.forEach(recipe => {
-        const recipeCard = createRecipeCard(recipe.recipe);
+        const recipeCard = createRecipeCard(recipe.recipe, false);
         searchResults.appendChild(recipeCard);
     });
 }
 
-function createRecipeCard(recipe) {
+function createRecipeCard(recipe, isFavorite = false) {
     const card = document.createElement('div');
     card.classList.add('recipe-card');
     card.innerHTML = `
@@ -57,16 +68,35 @@ function createRecipeCard(recipe) {
             <h3>${recipe.label}</h3>
             <p>Calories: ${Math.round(recipe.calories)}</p>
             <p>Ingredients: ${recipe.ingredientLines.length}</p>
-            <button class="favorite-btn" data-recipe='${JSON.stringify(recipe)}'>Add to Favorites</button>
+            <button class="view-recipe-btn" data-recipe='${JSON.stringify(recipe)}'>View Recipe</button>
+            ${isFavorite
+            ? `<button class="remove-favorite-btn" data-recipe='${JSON.stringify(recipe)}'>Remove Favorite</button>`
+            : `<button class="favorite-btn" data-recipe='${JSON.stringify(recipe)}'>Add to Favorites</button>`
+        }
         </div>
     `;
-    card.querySelector('.favorite-btn').addEventListener('click', handleAddToFavorites);
+    card.querySelector('.view-recipe-btn').addEventListener('click', handleViewRecipe);
+    if (isFavorite) {
+        card.querySelector('.remove-favorite-btn').addEventListener('click', handleRemoveFromFavorites);
+    } else {
+        card.querySelector('.favorite-btn').addEventListener('click', handleAddToFavorites);
+    }
     return card;
+}
+
+function handleViewRecipe(e) {
+    const recipeData = JSON.parse(e.target.getAttribute('data-recipe'));
+    displayRecipeModal(recipeData);
 }
 
 function handleAddToFavorites(e) {
     const recipeData = JSON.parse(e.target.getAttribute('data-recipe'));
     addToFavorites(recipeData);
+}
+
+function handleRemoveFromFavorites(e) {
+    const recipeData = JSON.parse(e.target.getAttribute('data-recipe'));
+    removeFromFavorites(recipeData);
 }
 
 function addToFavorites(recipe) {
@@ -78,13 +108,58 @@ function addToFavorites(recipe) {
     }
 }
 
+function removeFromFavorites(recipe) {
+    let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    favorites = favorites.filter(fav => fav.label !== recipe.label);
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+    displayFavorites();
+}
+
 function displayFavorites() {
     const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
     favoritesList.innerHTML = '';
+    if (favorites.length === 0) {
+        favoritesList.innerHTML = '<p>You have no favorite recipes yet.</p>';
+        return;
+    }
     favorites.forEach(recipe => {
-        const recipeCard = createRecipeCard(recipe);
+        const recipeCard = createRecipeCard(recipe, true);
         favoritesList.appendChild(recipeCard);
     });
+}
+
+function displayRecipeModal(recipe) {
+    modalTitle.textContent = recipe.label;
+    modalImage.src = recipe.image;
+    modalImage.alt = recipe.label;
+
+    modalDetails.innerHTML = `
+        <h3>Ingredients:</h3>
+        <ul>
+            ${recipe.ingredientLines.map(ingredient => `<li>${ingredient}</li>`).join('')}
+        </ul>
+        <h3>Nutrition:</h3>
+        <p>Calories: ${Math.round(recipe.calories)}</p>
+        <p>Servings: ${recipe.yield}</p>
+        <h3>Diet Labels:</h3>
+        <p>${recipe.dietLabels.join(', ') || 'None'}</p>
+        <h3>Health Labels:</h3>
+        <p>${recipe.healthLabels.join(', ')}</p>
+        <h3>Source:</h3>
+        <p><a href="${recipe.url}" target="_blank">${recipe.source}</a></p>
+    `;
+
+    showModal();
+}
+
+function showModal() {
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function hideModal() {
+    modal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
 }
 
 function showLoadingSpinner() {
