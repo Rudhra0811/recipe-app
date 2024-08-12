@@ -13,7 +13,7 @@ const modal = document.getElementById('recipe-modal');
 const modalTitle = document.getElementById('modal-recipe-title');
 const modalImage = document.getElementById('modal-recipe-image');
 const modalDetails = document.getElementById('modal-recipe-details');
-const closeModal = document.querySelector('.close');
+const closeModalBtn = document.querySelector('.modal .close');
 const dietaryFilters = document.querySelectorAll('#dietary-filters input[type="checkbox"]');
 const pagination = document.getElementById('pagination');
 const prevPageBtn = document.getElementById('prev-page');
@@ -28,11 +28,13 @@ let totalResults = 0;
 let resultsPerPage = 20;
 let currentQuery = '';
 let currentFilters = {};
+
+// Current recipe for rating
 let currentRecipe = null;
 
 // Event listeners
 searchForm.addEventListener('submit', handleSearch);
-closeModal.addEventListener('click', hideModal);
+closeModalBtn.addEventListener('click', hideModal);
 window.addEventListener('click', (e) => {
     if (e.target === modal) {
         hideModal();
@@ -78,7 +80,7 @@ async function searchRecipes(query, filters, page) {
         const from = (page - 1) * resultsPerPage;
         const to = from + resultsPerPage;
         let url = `${API_URL}?q=${query}&app_id=${API_ID}&app_key=${API_KEY}&from=${from}&to=${to}`;
-
+        
         if (filters.diet.length > 0) {
             url += `&diet=${filters.diet.join('&diet=')}`;
         }
@@ -114,17 +116,21 @@ function displaySearchResults(recipes) {
 function createRecipeCard(recipe, isFavorite = false) {
     const card = document.createElement('div');
     card.classList.add('recipe-card');
+    const averageRating = getAverageRating(recipe.label);
     card.innerHTML = `
         <img src="${recipe.image}" alt="${recipe.label}">
         <div class="recipe-card-content">
             <h3>${recipe.label}</h3>
             <p>Calories: ${Math.round(recipe.calories)}</p>
             <p>Ingredients: ${recipe.ingredientLines.length}</p>
+            <div class="rating">
+                ${averageRating > 0 ? `Average Rating: ${averageRating.toFixed(1)} ⭐` : 'Not rated yet'}
+            </div>
             <button class="view-recipe-btn" data-recipe='${JSON.stringify(recipe)}'>View Recipe</button>
-            ${isFavorite
-            ? `<button class="remove-favorite-btn" data-recipe='${JSON.stringify(recipe)}'>Remove Favorite</button>`
-            : `<button class="favorite-btn" data-recipe='${JSON.stringify(recipe)}'>Add to Favorites</button>`
-        }
+            ${isFavorite 
+                ? `<button class="remove-favorite-btn" data-recipe='${JSON.stringify(recipe)}'>Remove Favorite</button>`
+                : `<button class="favorite-btn" data-recipe='${JSON.stringify(recipe)}'>Add to Favorites</button>`
+            }
         </div>
     `;
     card.querySelector('.view-recipe-btn').addEventListener('click', handleViewRecipe);
@@ -178,95 +184,6 @@ function displayFavorites() {
         const recipeCard = createRecipeCard(recipe, true);
         favoritesList.appendChild(recipeCard);
     });
-}
-
-function displayRecipeModal(recipe) {
-    modalTitle.textContent = recipe.label;
-    modalImage.src = recipe.image;
-    modalImage.alt = recipe.label;
-
-    modalDetails.innerHTML = `
-        <h3>Ingredients:</h3>
-        <ul>
-            ${recipe.ingredientLines.map(ingredient => `<li>${ingredient}</li>`).join('')}
-        </ul>
-        <h3>Nutrition:</h3>
-        <p>Calories: ${Math.round(recipe.calories)}</p>
-        <p>Servings: ${recipe.yield}</p>
-        <h3>Diet Labels:</h3>
-        <p>${recipe.dietLabels.length ? recipe.dietLabels.join(', ') : 'None'}</p>
-        <h3>Health Labels:</h3>
-        <p>${recipe.healthLabels.join(', ')}</p>
-        <h3>Source:</h3>
-        <p><a href="${recipe.url}" target="_blank" rel="noopener noreferrer">${recipe.source}</a></p>
-    `;
-
-    showModal();
-}
-
-function showModal() {
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-}
-
-function hideModal() {
-    modal.classList.add('hidden');
-    document.body.style.overflow = 'auto';
-}
-
-function showLoadingSpinner() {
-    loadingSpinner.classList.remove('hidden');
-}
-
-function hideLoadingSpinner() {
-    loadingSpinner.classList.add('hidden');
-}
-
-function displayError(message) {
-    searchResults.innerHTML = `<p class="error">${message}</p>`;
-}
-
-function updatePagination() {
-    const totalPages = Math.ceil(totalResults / resultsPerPage);
-    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-    prevPageBtn.disabled = currentPage === 1;
-    nextPageBtn.disabled = currentPage === totalPages;
-    pagination.classList.remove('hidden');
-}
-
-function changePage(newPage) {
-    currentPage = newPage;
-    showLoadingSpinner();
-    searchRecipes(currentQuery, currentFilters, currentPage);
-}
-
-function createRecipeCard(recipe, isFavorite = false) {
-    const card = document.createElement('div');
-    card.classList.add('recipe-card');
-    const averageRating = getAverageRating(recipe.label);
-    card.innerHTML = `
-        <img src="${recipe.image}" alt="${recipe.label}">
-        <div class="recipe-card-content">
-            <h3>${recipe.label}</h3>
-            <p>Calories: ${Math.round(recipe.calories)}</p>
-            <p>Ingredients: ${recipe.ingredientLines.length}</p>
-            <div class="rating">
-                ${averageRating > 0 ? `Average Rating: ${averageRating.toFixed(1)} ⭐` : 'Not rated yet'}
-            </div>
-            <button class="view-recipe-btn" data-recipe='${JSON.stringify(recipe)}'>View Recipe</button>
-            ${isFavorite
-            ? `<button class="remove-favorite-btn" data-recipe='${JSON.stringify(recipe)}'>Remove Favorite</button>`
-            : `<button class="favorite-btn" data-recipe='${JSON.stringify(recipe)}'>Add to Favorites</button>`
-        }
-        </div>
-    `;
-    card.querySelector('.view-recipe-btn').addEventListener('click', handleViewRecipe);
-    if (isFavorite) {
-        card.querySelector('.remove-favorite-btn').addEventListener('click', handleRemoveFromFavorites);
-    } else {
-        card.querySelector('.favorite-btn').addEventListener('click', handleAddToFavorites);
-    }
-    return card;
 }
 
 function displayRecipeModal(recipe) {
@@ -331,6 +248,42 @@ function updateStarRating() {
         }
     });
     averageRatingSpan.textContent = averageRating > 0 ? averageRating.toFixed(1) : 'Not rated yet';
+}
+
+function showModal() {
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function hideModal() {
+    modal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+function showLoadingSpinner() {
+    loadingSpinner.classList.remove('hidden');
+}
+
+function hideLoadingSpinner() {
+    loadingSpinner.classList.add('hidden');
+}
+
+function displayError(message) {
+    searchResults.innerHTML = `<p class="error">${message}</p>`;
+}
+
+function updatePagination() {
+    const totalPages = Math.ceil(totalResults / resultsPerPage);
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    prevPageBtn.disabled = currentPage === 1;
+    nextPageBtn.disabled = currentPage === totalPages;
+    pagination.classList.remove('hidden');
+}
+
+function changePage(newPage) {
+    currentPage = newPage;
+    showLoadingSpinner();
+    searchRecipes(currentQuery, currentFilters, currentPage);
 }
 
 // Initialize the app
