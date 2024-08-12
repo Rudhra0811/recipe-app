@@ -17,9 +17,6 @@ header {
     text-align: center;
     padding: 1rem;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 100;
 }
 
 header h1 {
@@ -217,7 +214,7 @@ button:hover {
     display: none;
 }
 
-.modal {
+/* .modal {
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -228,7 +225,7 @@ button:hover {
     display: flex;
     justify-content: center;
     align-items: center;
-}
+} */
 
 .modal-content {
     background-color: #fff;
@@ -238,11 +235,14 @@ button:hover {
     width: 90%;
     max-height: 90vh;
     overflow-y: auto;
+    position: relative;
 }
 
 .close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
     color: #aaa;
-    float: right;
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
@@ -252,7 +252,6 @@ button:hover {
 .close:focus {
     color: #000;
     text-decoration: none;
-    cursor: pointer;
 }
 
 #modal-recipe-image {
@@ -278,6 +277,106 @@ button:hover {
     padding-left: 1rem;
 }
 
+#pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+}
+
+.pagination-btn {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin: 0 0.5rem;
+}
+
+.pagination-btn:hover {
+    background-color: #45a049;
+}
+
+.pagination-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+#page-info {
+    font-size: 1rem;
+    margin: 0 1rem;
+}
+
+.star-rating {
+    font-size: 24px;
+    color: #ddd;
+    cursor: pointer;
+}
+
+.star-rating .star {
+    transition: color 0.2s ease;
+}
+
+.star-rating .star:hover,
+.star-rating .star.active {
+    color: #ffd700;
+}
+
+#average-rating {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.recipe-card .rating {
+    margin-top: 10px;
+    font-size: 18px;
+    color: #ffd700;
+}
+
+/* Improve overall design */
+
+body {
+    background-color: #f0f0f0;
+}
+
+header {
+    background-color: #2c3e50;
+}
+
+button,
+.pagination-btn {
+    background-color: #3498db;
+    transition: background-color 0.3s ease;
+}
+
+button:hover,
+.pagination-btn:hover {
+    background-color: #2980b9;
+}
+
+.recipe-card {
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.recipe-card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    transform: translateY(-5px);
+}
+
+.modal-content {
+    background-color: #fff;
+    border-radius: 8px;
+}
+
+#recipe-rating {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
 footer {
     text-align: center;
     padding: 1rem;
@@ -285,6 +384,8 @@ footer {
     color: #fff;
     font-size: 0.9rem;
 }
+
+
 
 @media (max-width: 768px) {
     header h1 {
@@ -310,5 +411,18 @@ footer {
 
     .filter-options {
         flex-direction: column;
+    }
+
+    #pagination {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .pagination-btn {
+        margin: 0.5rem 0;
+    }
+
+    #page-info {
+        margin: 0.5rem 0;
     }
 }
